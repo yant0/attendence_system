@@ -398,6 +398,19 @@
         display: block;
       }
     }
+
+    .qr-display .card {
+      border: 1px solid #e9ecef;
+    }
+
+    .qr-display .table th {
+      white-space: nowrap;
+      font-size: 0.85rem;
+    }
+
+    .qr-display .table td {
+      font-size: 0.85rem;
+    }
   </style>
 </head>
 
@@ -430,14 +443,14 @@
       <a href="/dosen/profile"><i class="bi bi-person-circle"></i> Profil</a>
       <a href="#"><i class="bi bi-gear-fill"></i> Pengaturan</a>
     </nav>
-  <div class="sidebar-footer">
+    <div class="sidebar-footer">
 
-    <form method="POST" action="{{ route('logout') }}">
+      <form method="POST" action="{{ route('logout') }}">
 
         @csrf
 
         <button type="submit"
-            style="
+          style="
                 width:100%;
                 background:none;
                 border:none;
@@ -449,14 +462,14 @@
                 border-radius:8px;
             ">
 
-            <i class="bi bi-box-arrow-left"></i>
-            Keluar
+          <i class="bi bi-box-arrow-left"></i>
+          Keluar
 
         </button>
 
-    </form>
+      </form>
 
-</div>
+    </div>
   </aside>
 
   <div class="main-content">
@@ -601,13 +614,77 @@
 
                 <!-- Actions -->
                 <div class="d-flex gap-2 mt-4">
-                  <button class="btn btn-outline-danger btn-sm rounded-pill px-3" onclick="stopQR()">
+                  <button
+                    class="btn btn-outline-danger btn-sm rounded-pill px-3"
+                    onclick="stopQR()">
                     <i class="bi bi-stop-circle me-1"></i>Hentikan
                   </button>
-                  <button class="btn btn-sm rounded-pill px-3" style="background:var(--maroon);color:#fff;"
+
+                  <button
+                    class="btn btn-sm rounded-pill px-3"
+                    style="background: var(--maroon); color: #fff;"
                     onclick="generateQR()">
                     <i class="bi bi-arrow-clockwise me-1"></i>Regenerate
                   </button>
+                </div>
+
+                <!-- Daftar Mahasiswa Scan -->
+                <div class="card mt-4 w-100 shadow-sm">
+                  <div
+                    class="card-header text-white fw-semibold d-flex align-items-center"
+                    style="background: var(--maroon);">
+                    <i class="bi bi-people-fill me-2"></i>
+                    Daftar Mahasiswa Scan
+                  </div>
+
+                  <div class="card-body p-0">
+                    <div class="table-responsive">
+                      <table
+                        class="table table-bordered table-hover align-middle mb-0 text-center">
+                        <thead style="background: var(--maroon); color: #fff;">
+                          <tr>
+                            <th>NIM</th>
+                            <th>Nama</th>
+                            <th>Status</th>
+                            <th>Latitude</th>
+                            <th>Longitude</th>
+                          </tr>
+                        </thead>
+
+                        <tbody>
+                          <tr>
+                            <td>221110001</td>
+                            <td class="text-start">Budi Santoso</td>
+                            <td>
+                              <span class="badge bg-success">Hadir</span>
+                            </td>
+                            <td>-7.7691</td>
+                            <td>110.3777</td>
+                          </tr>
+
+                          <tr>
+                            <td>221110002</td>
+                            <td class="text-start">Siti Aisyah</td>
+                            <td>
+                              <span class="badge bg-success">Hadir</span>
+                            </td>
+                            <td>-7.7688</td>
+                            <td>110.3780</td>
+                          </tr>
+
+                          <tr>
+                            <td>221110003</td>
+                            <td class="text-start">Ahmad Rizki</td>
+                            <td>
+                              <span class="badge bg-success">Hadir</span>
+                            </td>
+                            <td>-7.7695</td>
+                            <td>110.3775</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -637,96 +714,91 @@
 
     function generateQR() {
 
-    const mk = document.getElementById('selMk').value;
+      const mk = document.getElementById('selMk').value;
 
-    const prtm = document.getElementById('pertemuan').value;
+      const prtm = document.getElementById('pertemuan').value;
 
-    const tgl = document.getElementById('tglSesi').value;
+      const tgl = document.getElementById('tglSesi').value;
 
-    const wkt = document.getElementById('waktuMulai').value;
+      const wkt = document.getElementById('waktuMulai').value;
 
-    const dur = parseInt(
+      const dur = parseInt(
         document.getElementById('durasi').value
-    );
+      );
 
-    if (!mk) {
+      if (!mk) {
 
         alert(
-            'Pilih mata kuliah terlebih dahulu!'
+          'Pilih mata kuliah terlebih dahulu!'
         );
 
         return;
 
-    }
+      }
 
-    if (!prtm) {
+      if (!prtm) {
 
         alert(
-            'Masukkan nomor pertemuan!'
+          'Masukkan nomor pertemuan!'
         );
 
         return;
 
-    }
+      }
 
-    // CLEAR TIMER LAMA
-    clearInterval(timerInterval);
+      // CLEAR TIMER LAMA
+      clearInterval(timerInterval);
 
-    clearInterval(scanSimInterval);
+      clearInterval(scanSimInterval);
 
-    document.getElementById(
+      document.getElementById(
         'qrCanvas'
-    ).innerHTML = '';
+      ).innerHTML = '';
 
-    // WAJIB AKTIFKAN LOKASI DOSEN
-    navigator.geolocation.getCurrentPosition(
+      // WAJIB AKTIFKAN LOKASI DOSEN
+      navigator.geolocation.getCurrentPosition(
 
         // SUCCESS GPS
         (position) => {
 
-            fetch('/dosen/generate_qr/process', {
+          fetch('/dosen/generate_qr/process', {
 
-                method: 'POST',
+              method: 'POST',
 
-                headers: {
+              headers: {
 
-                    'Content-Type':
-                        'application/json',
+                'Content-Type': 'application/json',
 
-                    'X-CSRF-TOKEN':
-                        document
-                        .querySelector(
-                            'meta[name="csrf-token"]'
-                        )
-                        .getAttribute('content')
+                'X-CSRF-TOKEN': document
+                  .querySelector(
+                    'meta[name="csrf-token"]'
+                  )
+                  .getAttribute('content')
 
-                },
+              },
 
-                body: JSON.stringify({
+              body: JSON.stringify({
 
-                    kode_matakuliah: mk,
+                kode_matakuliah: mk,
 
-                    pertemuan: prtm,
+                pertemuan: prtm,
 
-                    tanggal: tgl,
+                tanggal: tgl,
 
-                    waktu_mulai: wkt,
+                waktu_mulai: wkt,
 
-                    durasi: dur,
+                durasi: dur,
 
-                    keterangan:
-                        document.getElementById(
-                            'keterangan'
-                        ).value,
+                keterangan: document.getElementById(
+                  'keterangan'
+                ).value,
 
-                    // GPS DOSEN
-                    latitude:
-                        position.coords.latitude,
+                // GPS DOSEN
+                latitude: position.coords.latitude,
 
-                    longitude:
-                        position.coords.longitude
+                longitude: position.coords.longitude
 
-                })
+              })
 
             })
 
@@ -734,130 +806,130 @@
 
             .then(data => {
 
-                console.log(data);
+              console.log(data);
 
-                if(!data.success){
+              if (!data.success) {
 
-                    alert(
-                        'Gagal generate QR'
-                    );
+                alert(
+                  'Gagal generate QR'
+                );
 
-                    return;
+                return;
+
+              }
+
+              const qrCanvas =
+                document.getElementById(
+                  'qrCanvas'
+                );
+
+              qrCanvas.innerHTML = '';
+
+              console.log(
+                'QR URL:',
+                data.url
+              );
+
+              // GENERATE QR
+              new QRCode(qrCanvas, {
+
+                text: data.url,
+
+                width: 180,
+
+                height: 180
+
+              });
+
+              // UPDATE UI
+              document.getElementById(
+                  'qrMkLabel'
+                ).textContent =
+                mkNames[mk] || mk;
+
+              document.getElementById(
+                  'qrSubLabel'
+                ).textContent =
+                'Pertemuan ke-' + prtm;
+
+              document.getElementById(
+                'infoDate'
+              ).textContent = tgl;
+
+              document.getElementById(
+                'infoTime'
+              ).textContent = wkt;
+
+              document.getElementById(
+                'scanCount'
+              ).textContent = '0';
+
+              document.getElementById(
+                'qrPlaceholder'
+              ).style.display = 'none';
+
+              const res =
+                document.getElementById(
+                  'qrResult'
+                );
+
+              res.style.display = 'flex';
+
+              // COUNTDOWN
+              let remaining = dur;
+
+              updateTimer(remaining);
+
+              timerInterval = setInterval(() => {
+
+                remaining--;
+
+                if (remaining <= 0) {
+
+                  clearInterval(
+                    timerInterval
+                  );
+
+                  stopQR(true);
+
+                  return;
 
                 }
 
-                const qrCanvas =
-                    document.getElementById(
-                        'qrCanvas'
-                    );
-
-                qrCanvas.innerHTML = '';
-
-                console.log(
-                    'QR URL:',
-                    data.url
-                );
-
-                // GENERATE QR
-                new QRCode(qrCanvas, {
-
-                    text: data.url,
-
-                    width: 180,
-
-                    height: 180
-
-                });
-
-                // UPDATE UI
-                document.getElementById(
-                    'qrMkLabel'
-                ).textContent =
-                    mkNames[mk] || mk;
-
-                document.getElementById(
-                    'qrSubLabel'
-                ).textContent =
-                    'Pertemuan ke-' + prtm;
-
-                document.getElementById(
-                    'infoDate'
-                ).textContent = tgl;
-
-                document.getElementById(
-                    'infoTime'
-                ).textContent = wkt;
-
-                document.getElementById(
-                    'scanCount'
-                ).textContent = '0';
-
-                document.getElementById(
-                    'qrPlaceholder'
-                ).style.display = 'none';
-
-                const res =
-                    document.getElementById(
-                        'qrResult'
-                    );
-
-                res.style.display = 'flex';
-
-                // COUNTDOWN
-                let remaining = dur;
-
                 updateTimer(remaining);
 
-                timerInterval = setInterval(() => {
+              }, 1000);
 
-                    remaining--;
+              // SIMULASI COUNT
+              let cnt = 0;
 
-                    if (remaining <= 0) {
+              scanSimInterval = setInterval(() => {
 
-                        clearInterval(
-                            timerInterval
-                        );
+                if (cnt < 32) {
 
-                        stopQR(true);
+                  cnt++;
 
-                        return;
+                  document.getElementById(
+                    'scanCount'
+                  ).textContent = cnt;
 
-                    }
+                } else {
 
-                    updateTimer(remaining);
+                  clearInterval(
+                    scanSimInterval
+                  );
 
-                }, 1000);
+                }
 
-                // SIMULASI COUNT
-                let cnt = 0;
-
-                scanSimInterval = setInterval(() => {
-
-                    if (cnt < 32) {
-
-                        cnt++;
-
-                        document.getElementById(
-                            'scanCount'
-                        ).textContent = cnt;
-
-                    } else {
-
-                        clearInterval(
-                            scanSimInterval
-                        );
-
-                    }
-
-                }, 800);
+              }, 800);
 
             })
 
             .catch(err => {
 
-                console.log(err);
+              console.log(err);
 
-                alert('Fetch Error');
+              alert('Fetch Error');
 
             });
 
@@ -866,19 +938,19 @@
         // GPS GAGAL / DITOLAK
         (error) => {
 
-            alert(
-                'Lokasi wajib diaktifkan untuk generate QR!'
-            );
+          alert(
+            'Lokasi wajib diaktifkan untuk generate QR!'
+          );
 
-            return;
+          return;
 
         }
 
-    );
+      );
 
-}
+    }
 
-   
+
 
     function updateTimer(sec) {
       const m = String(Math.floor(sec / 60)).padStart(2, '0');
@@ -900,6 +972,7 @@
       document.getElementById('sidebar').classList.toggle('show');
       document.getElementById('overlay').classList.toggle('show');
     }
+
     function closeSidebar() {
       document.getElementById('sidebar').classList.remove('show');
       document.getElementById('overlay').classList.remove('show');
