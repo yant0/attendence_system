@@ -9,36 +9,48 @@
   <style>
     :root { --maroon:#800020; --maroon-dark:#5a0016; --sidebar-w:260px; --gray-bg:#f4f6f9; }
     body { font-family:'Segoe UI', sans-serif; background:var(--gray-bg); }
-    .sidebar { position:fixed; inset:0 auto 0 0; width:var(--sidebar-w); background:linear-gradient(180deg,var(--maroon-dark),var(--maroon)); color:#fff; overflow:auto; z-index:1000; }
-    .sidebar-brand { padding:1.5rem 1.2rem 1rem; border-bottom:1px solid rgba(255,255,255,.12); }
-    .logo-circle { width:48px; height:48px; border-radius:50%; background:rgba(255,255,255,.15); display:flex; align-items:center; justify-content:center; margin-bottom:.6rem; }
-    .sidebar-user { margin:.8rem 1rem; padding:.75rem; background:rgba(255,255,255,.1); border-radius:10px; display:flex; gap:.75rem; align-items:center; }
-    .avatar { width:40px; height:40px; border-radius:50%; background:#ffd700; color:var(--maroon-dark); display:flex; align-items:center; justify-content:center; font-weight:700; }
-    .nav-section-title { color:rgba(255,255,255,.45); font-size:.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:1rem 1.2rem .3rem; }
-    .sidebar-nav a { display:flex; align-items:center; gap:.75rem; padding:.65rem 1.2rem; color:rgba(255,255,255,.75); text-decoration:none; font-size:.9rem; border-radius:0 25px 25px 0; margin:.1rem .8rem .1rem 0; }
-    .sidebar-nav a:hover,.sidebar-nav a.active { background:rgba(255,255,255,.18); color:#fff; }
-    .sidebar-footer { margin-top:2rem; padding:1rem; border-top:1px solid rgba(255,255,255,.12); }
-    .main-content { margin-left:var(--sidebar-w); min-height:100vh; }
+    .sidebar { position:fixed; top:0; left:0; width:var(--sidebar-w); height:100vh; background:linear-gradient(180deg,var(--maroon-dark) 0%,var(--maroon) 100%); display:flex; flex-direction:column; z-index:1000; transition:transform .3s; overflow-y:auto; }
+    .sidebar-brand { padding:1.5rem 1.2rem 1rem; border-bottom:1px solid rgba(255,255,255,0.12); }
+    .sidebar-brand .logo-circle { width:48px; height:48px; background:rgba(255,255,255,0.15); border-radius:50%; display:flex; align-items:center; justify-content:center; border:2px solid rgba(255,255,255,0.3); margin-bottom:.6rem; }
+    .sidebar-brand .logo-circle i { color:#fff; font-size:1.4rem; }
+    .sidebar-brand h5 { color:#fff; font-weight:700; letter-spacing:1.5px; margin:0; font-size:1.1rem; }
+    .sidebar-brand small { color:rgba(255,255,255,0.6); font-size:0.75rem; }
+    .sidebar-user { margin:.8rem 1rem; padding:.75rem; background:rgba(255,255,255,0.1); border-radius:10px; display:flex; align-items:center; gap:.75rem; }
+    .sidebar-user .avatar { width:40px; height:40px; border-radius:50%; background:#ffd700; display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--maroon-dark); font-size:1rem; }
+    .sidebar-user .info .name { color:#fff; font-size:0.88rem; font-weight:600; }
+    .sidebar-user .info .role { color:rgba(255,255,255,0.6); font-size:0.75rem; }
+    .nav-section-title { color:rgba(255,255,255,0.45); font-size:0.7rem; font-weight:700; letter-spacing:1px; text-transform:uppercase; padding:1rem 1.2rem .3rem; }
+    .sidebar-nav a { display:flex; align-items:center; gap:.75rem; padding:.65rem 1.2rem; color:rgba(255,255,255,0.75); text-decoration:none; font-size:0.9rem; border-radius:0 25px 25px 0; margin:.1rem .8rem .1rem 0; transition:all .2s; }
+    .sidebar-nav a:hover,.sidebar-nav a.active { background:rgba(255,255,255,0.18); color:#fff; }
+    .sidebar-nav a.active { font-weight:600; }
+    .sidebar-nav a i { font-size:1rem; width:22px; }
+    .sidebar-footer { margin-top:auto; padding:1rem; border-top:1px solid rgba(255,255,255,0.12); }
+    .sidebar-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); z-index:999; }
+    .btn-toggle { display:none; background:none; border:none; font-size:1.4rem; color:#555; }
+    .main-content { margin-left:var(--sidebar-w); min-height:100vh; transition:margin .3s; }
     .topbar { background:#fff; padding:.85rem 1.5rem; box-shadow:0 2px 10px rgba(0,0,0,.06); position:sticky; top:0; z-index:900; display:flex; justify-content:space-between; gap:1rem; align-items:center; }
     .page-title { font-weight:700; color:#1a1a2e; }
     .btn-maroon { background:linear-gradient(135deg,var(--maroon-dark),#c0003a); color:#fff; border:0; }
     .btn-maroon:hover { color:#fff; filter:brightness(.95); }
     .mk-card { background:#fff; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,.06); border-top:4px solid var(--maroon); height:100%; }
-    @media (max-width:991px) { .sidebar { position:static; width:100%; height:auto; } .main-content { margin-left:0; } }
+    @media (max-width:991px) { .sidebar { transform:translateX(-100%); } .sidebar.show { transform:translateX(0); } .sidebar-overlay.show { display:block; } .main-content { margin-left:0; } .btn-toggle { display:block; } }
   </style>
 </head>
 <body>
-<aside class="sidebar">
+
+<div class="sidebar-overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
   <div class="sidebar-brand">
     <div class="logo-circle"><i class="bi bi-mortarboard-fill"></i></div>
-    <h5 class="mb-0">AMBASEN</h5>
+    <h5>AMBASEN</h5>
     <small>Sistem Presensi Akademik</small>
   </div>
   <div class="sidebar-user">
     <div class="avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</div>
-    <div>
-      <div class="fw-semibold">{{ auth()->user()->name }}</div>
-      <small class="text-white-50">{{ ucfirst(auth()->user()->role) }} / {{ auth()->user()->email }}</small>
+    <div class="info">
+      <div class="name">{{ auth()->user()->name }}</div>
+      <div class="role">{{ ucfirst(auth()->user()->role) }} / {{ auth()->user()->email }}</div>
     </div>
   </div>
   <div class="nav-section-title">Menu Utama</div>
@@ -47,20 +59,31 @@
     <a href="/dosen/generate_qr"><i class="bi bi-qr-code-scan"></i> Generate QR</a>
     <a href="/dosen/list_mahasiswa"><i class="bi bi-people-fill"></i> Data Mahasiswa</a>
     <a href="/dosen/list_matakuliah" class="active"><i class="bi bi-book-fill"></i> Mata Kuliah</a>
+    <a href="/dosen/izin_mahasiswa"><i class="bi bi-file-earmark-check-fill"></i> Izin Mahasiswa</a>
+  </nav>
+  <div class="nav-section-title">Lainnya</div>
+  <nav class="sidebar-nav">
+    <a href="/dosen/profile"><i class="bi bi-person-circle"></i> Profil</a>
+    <a href="#"><i class="bi bi-gear-fill"></i> Pengaturan</a>
   </nav>
   <div class="sidebar-footer">
     <form method="POST" action="{{ route('logout') }}">
       @csrf
-      <button type="submit" class="btn btn-link text-white-50 text-decoration-none p-0"><i class="bi bi-box-arrow-left me-2"></i>Keluar</button>
+      <button type="submit" style="width:100%;background:none;border:none;display:flex;align-items:center;gap:.6rem;color:rgba(255,255,255,0.7);padding:.5rem .8rem;border-radius:8px;">
+        <i class="bi bi-box-arrow-left"></i> Keluar
+      </button>
     </form>
   </div>
 </aside>
 
 <main class="main-content">
   <div class="topbar">
-    <div>
-      <div class="page-title">Mata Kuliah</div>
-      <small class="text-muted">Data tersimpan di tabel matakuliah dan dipakai saat generate QR.</small>
+    <div class="d-flex align-items-center gap-3">
+      <button class="btn-toggle" onclick="toggleSidebar()"><i class="bi bi-list"></i></button>
+      <div>
+        <div class="page-title">Mata Kuliah</div>
+        <small class="text-muted">Data tersimpan di tabel matakuliah dan dipakai saat generate QR.</small>
+      </div>
     </div>
     <button class="btn btn-maroon rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#modalTambah">
       <i class="bi bi-plus-lg me-1"></i>Tambah Mata Kuliah
@@ -163,5 +186,15 @@
 @endforeach
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('show');
+    document.getElementById('overlay').classList.toggle('show');
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('show');
+    document.getElementById('overlay').classList.remove('show');
+  }
+</script>
 </body>
 </html>

@@ -35,6 +35,10 @@ Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->group(function () {
     Route::get('/generate_qr/presensis', [QRController::class, 'presensis']);
 
     Route::post('/generate_qr/process', [QRController::class, 'store']);
+
+    Route::get('/izin_mahasiswa', function () {
+        return view('dosen.izin_mahasiswa');
+    })->name('dosen.izin.index');
 });
 
 Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->group(function () {

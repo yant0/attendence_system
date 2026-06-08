@@ -437,6 +437,7 @@
       <a href="/dosen/generate_qr" class="active"><i class="bi bi-qr-code-scan"></i> Generate QR</a>
       <a href="/dosen/list_mahasiswa"><i class="bi bi-people-fill"></i> Data Mahasiswa</a>
       <a href="/dosen/list_matakuliah"><i class="bi bi-book-fill"></i> Mata Kuliah</a>
+      <a href="/dosen/izin_mahasiswa"><i class="bi bi-file-earmark-check-fill"></i> Izin Mahasiswa</a>
     </nav>
     <div class="nav-section-title">Lainnya</div>
     <nav class="sidebar-nav">
