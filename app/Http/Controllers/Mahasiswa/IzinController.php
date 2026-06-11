@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Izin;
 use App\Models\Matakuliah;
+use Carbon\Carbon;
 
 class IzinController extends Controller
 {
@@ -26,11 +27,11 @@ class IzinController extends Controller
                 'id'       => $i->id,
                 'mk'       => $i->matakuliah->nama_matakuliah ?? $i->kode_matakuliah ?? '-',
                 'jenis'    => $i->jenis,
-                'tgl'      => $i->tanggal ? $i->tanggal->format('Y-m-d') : '-',
+                'tgl'      => $i->tanggal ? Carbon::parse($i->tanggal)->format('Y-m-d') : '-',
                 'ket'      => $i->keterangan,
                 'status'   => $i->status,
                 'catatan'  => $i->catatan_dosen ?? '',
-                'diajukan' => $i->created_at ? $i->created_at->format('Y-m-d') : '-',
+                'diajukan' => $i->created_at ? Carbon::parse($i->created_at)->format('Y-m-d') : '-',
             ];
         });
 

@@ -8,6 +8,7 @@ use App\Models\Matakuliah;
 use App\Models\Presensi;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
+use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -23,10 +24,10 @@ class DashboardController extends Controller
 
         // Calculate attendance stats - total across all presensi
         $userPresensis = Presensi::where('mahasiswa_id', $user->id)->get();
-        $hadirCount = $userPresensis->where('status', 'Hadir')->count();
-        $izinCount = $userPresensis->where('status', 'Izin')->count();
-        $alphaCount = $userPresensis->where('status', 'Alpha')->count();
-        $totalPresensis = $hadirCount + $izinCount + $alphaCount;
+        $hadirCount = $userPresensis->where('status', 'hadir')->count();
+        $izinCount = $userPresensis->where('status', 'izin')->count();
+        $absenCount = $userPresensis->where('status', 'absen')->count();
+        $totalPresensis = $hadirCount + $izinCount + $absenCount;
         
         $attendancePercentage = $totalPresensis > 0 
             ? round(($hadirCount / $totalPresensis) * 100) 
@@ -42,7 +43,7 @@ class DashboardController extends Controller
             ->where('mahasiswa_id', $user->id)
             ->get();
             
-            $mkHadir = $mkPresensis->where('status', 'Hadir')->count();
+            $mkHadir = $mkPresensis->where('status', 'hadir')->count();
             $mkTotal = $mkPresensis->count();
             $mkPercentage = $mkTotal > 0 ? round(($mkHadir / $mkTotal) * 100) : 0;
 
@@ -66,7 +67,7 @@ class DashboardController extends Controller
             ->map(function ($i) {
                 return [
                     'mk' => $i->matakuliah?->nama_matakuliah ?? $i->kode_matakuliah ?? '-',
-                    'tgl' => $i->tanggal?->format('d M Y') ?? '-',
+                    'tgl' => $i->tanggal ? Carbon::parse($i->tanggal)->format('d M Y') : '-',
                     'jenis' => $i->jenis,
                     'status' => $i->status,
                     'color' => $i->status === 'Disetujui' ? '#198754' : ($i->status === 'Ditolak' ? '#dc3545' : '#fd7e14'),
@@ -80,12 +81,18 @@ class DashboardController extends Controller
             ->take(5)
             ->get()
             ->map(function ($p) {
+                $tanggal = $p->qrSession?->tanggal;
+                $tanggalFormatted = $tanggal ? Carbon::parse($tanggal)->format('d M Y') : '-';
+                
+                $waktuScan = $p->waktu_scan;
+                $waktuFormatted = $waktuScan ? (is_string($waktuScan) ? substr($waktuScan, 11, 5) : $waktuScan->format('H:i')) : '-';
+                
                 return [
                     'mk' => $p->qrSession?->matakuliah?->nama_matakuliah ?? '-',
-                    'tgl' => $p->qrSession?->tanggal?->format('d M Y') ?? '-',
-                    'waktu' => $p->waktu_scan ? substr($p->waktu_scan, 0, 5) : '-',
+                    'tgl' => $tanggalFormatted,
+                    'waktu' => $waktuFormatted,
                     'status' => $p->status,
-                    'color' => $p->status === 'Hadir' ? '#198754' : ($p->status === 'Izin' ? '#fd7e14' : '#dc3545'),
+                    'color' => $p->status === 'hadir' ? '#198754' : ($p->status === 'izin' ? '#fd7e14' : '#dc3545'),
                 ];
             });
 
@@ -93,7 +100,7 @@ class DashboardController extends Controller
             'attendancePercentage' => $attendancePercentage,
             'hadirCount' => $hadirCount,
             'izinCount' => $izinCount,
-            'alphaCount' => $alphaCount,
+            'absenCount' => $absenCount,
             'totalPresensis' => $totalPresensis,
             'totalMatakuliah' => $matakuliahs->count(),
             'totalSks' => $matakuliahs->sum('sks'),

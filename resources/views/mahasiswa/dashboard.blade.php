@@ -168,7 +168,7 @@
     <div>
       <div style="color:rgba(255,255,255,0.8);font-size:.8rem;">Kehadiran Semester Ini</div>
       <div style="color:#fff;font-weight:700;font-size:1.6rem;line-height:1;">{{ $attendancePercentage }}%</div>
-      <div style="color:rgba(255,255,255,0.7);font-size:.75rem;">{{ $hadirCount }} / {{ $hadirCount + $izinCount + $alphaCount }} pertemuan hadir</div>
+      <div style="color:rgba(255,255,255,0.7);font-size:.75rem;">{{ $hadirCount }} / {{ $hadirCount + $izinCount + $absenCount }} pertemuan hadir</div>
     </div>
   </div>
 </div>
@@ -188,8 +188,8 @@
     <div class="lbl">Izin</div>
   </div>
   <div class="sum-pill">
-    <div class="val" style="color:#dc3545;">{{ $alphaCount }}</div>
-    <div class="lbl">Alpha</div>
+    <div class="val" style="color:#dc3545;">{{ $absenCount }}</div>
+    <div class="lbl">Absen</div>
   </div>
   <div class="sum-pill">
     <div class="val" style="color:#0d6efd;">{{ $totalSks }}</div>
@@ -290,7 +290,7 @@
           $statusBadges = [
             'hadir' => '<span class="badge badge-hadir px-2 rounded-pill">Hadir</span>',
             'izin'  => '<span class="badge badge-izin px-2 rounded-pill">Izin</span>',
-            'alpha' => '<span class="badge badge-alpha px-2 rounded-pill">Alpha</span>',
+            'alpha' => '<span class="badge badge-alpha px-2 rounded-pill">Absen</span>',
           ];
         @endphp
         <div class="rec-item">
