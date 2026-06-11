@@ -19,10 +19,12 @@
     .top-header::before {
       content: ''; position: absolute; width: 200px; height: 200px; border-radius: 50%;
       background: rgba(255,255,255,0.06); top: -80px; right: -60px;
+      z-index: -100;
     }
     .top-header::after {
       content: ''; position: absolute; width: 120px; height: 120px; border-radius: 50%;
       background: rgba(255,255,255,0.04); bottom: -50px; left: -30px;
+      z-index: -100;
     }
     .top-header .avatar {
       width: 70px; height: 70px; border-radius: 50%;
@@ -149,8 +151,8 @@
     <div class="avatar">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</div>
     <div class="flex-grow-1">
       <div class="prof-name">{{ auth()->user()->name }}</div>
-      <div class="prof-nim"><i class="bi bi-envelope me-1"></i>{{ auth()->user()->email }}</div>
-      <div class="prof-prodi"><i class="bi bi-building me-1"></i>Teknik Informatika</div>
+      <div class="prof-nim"><i class="bi bi-id-card me-1"></i>{{ $mahasiswa->nim ?? 'N/A' }}</div>
+      <div class="prof-prodi"><i class="bi bi-building me-1"></i>{{ $mahasiswa->jurusan ?? 'N/A' }}</div>
     </div>
     <button class="edit-icon-btn" onclick="openEditModal()" aria-label="Edit Profil">
       <i class="bi bi-pencil-square"></i>
@@ -161,24 +163,24 @@
 <!-- SUMMARY STRIP -->
 <div class="summary-strip">
   <div class="sum-pill">
-    <div class="val" style="color:var(--maroon);">87%</div>
+    <div class="val" style="color:var(--maroon);">{{ round($persentaseKehadiran) }}%</div>
     <div class="lbl">Kehadiran</div>
   </div>
   <div class="sum-pill">
-    <div class="val" style="color:#198754;">13</div>
+    <div class="val" style="color:#198754;">{{ $totalHadir }}</div>
     <div class="lbl">Hadir</div>
   </div>
   <div class="sum-pill">
-    <div class="val" style="color:#fd7e14;">1</div>
+    <div class="val" style="color:#fd7e14;">{{ $totalIzin }}</div>
     <div class="lbl">Izin</div>
   </div>
   <div class="sum-pill">
-    <div class="val" style="color:#dc3545;">2</div>
+    <div class="val" style="color:#dc3545;">{{ $totalAlpha }}</div>
     <div class="lbl">Alpha</div>
   </div>
   <div class="sum-pill">
-    <div class="val" style="color:#0d6efd;">14</div>
-    <div class="lbl">SKS</div>
+    <div class="val" style="color:#0d6efd;">{{ $mahasiswa->semester ?? '0' }}</div>
+    <div class="lbl">Semester</div>
   </div>
 </div>
 
@@ -194,35 +196,35 @@
     <div class="section-card-body">
       <div class="info-row">
         <span class="info-label">Nama Lengkap</span>
-        <span class="info-value">{{ auth()->user()->name }}</span>
+        <span class="info-value">{{ $mahasiswa->nama ?? auth()->user()->name }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">NIM</span>
-        <span class="info-value">M001</span>
+        <span class="info-value">{{ $mahasiswa->nim ?? 'N/A' }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Email</span>
-        <span class="info-value">andi@student.ac.id</span>
+        <span class="info-value">{{ $mahasiswa->email ?? auth()->user()->email }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">No. HP</span>
-        <span class="info-value">08111111111</span>
+        <span class="info-value">{{ $mahasiswa->no_hp ?? 'N/A' }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Tanggal Lahir</span>
-        <span class="info-value">15 Maret 2004</span>
+        <span class="info-value">{{ $mahasiswa->tanggal_lahir ?? 'N/A' }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Jenis Kelamin</span>
-        <span class="info-value">Laki-laki</span>
+        <span class="info-value">{{ $mahasiswa->jenis_kelamin ?? 'N/A' }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Angkatan</span>
-        <span class="info-value">2022</span>
+        <span class="info-value">{{ $mahasiswa->angkatan ?? 'N/A' }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Alamat</span>
-        <span class="info-value">Jl. Sudirman No. 45, Bandung</span>
+        <span class="info-value">{{ $mahasiswa->alamat ?? 'N/A' }}</span>
       </div>
     </div>
   </div>
@@ -236,25 +238,25 @@
     <div class="section-card-body">
       <div class="info-row">
         <span class="info-label">Program Studi</span>
-        <span class="info-value">Teknik Informatika</span>
+        <span class="info-value">{{ $mahasiswa->jurusan ?? 'N/A' }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Semester</span>
-        <span class="info-value">6</span>
+        <span class="info-value">{{ $mahasiswa->semester ?? 'N/A' }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Status Mahasiswa</span>
         <span class="info-value">
-          <span class="badge text-bg-success rounded-pill px-3">Aktif</span>
+          <span class="badge text-bg-{{ $mahasiswa->status === 'Aktif' ? 'success' : 'warning' }} rounded-pill px-3">{{ $mahasiswa->status ?? 'N/A' }}</span>
         </span>
       </div>
       <div class="info-row">
         <span class="info-label">IPK</span>
-        <span class="info-value" style="font-weight:700;color:var(--maroon);">3.75</span>
+        <span class="info-value" style="font-weight:700;color:var(--maroon);">{{ $mahasiswa->ipk ?? 'N/A' }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Total SKS Tempuh</span>
-        <span class="info-value">98 SKS</span>
+        <span class="info-value">{{ $mahasiswa->total_sks ?? '0' }} SKS</span>
       </div>
     </div>
   </div>
@@ -272,21 +274,21 @@
           <svg width="110" height="110">
             <circle cx="55" cy="55" r="48" fill="none" stroke="#f0f0f0" stroke-width="8"/>
             <circle cx="55" cy="55" r="48" fill="none" stroke="var(--maroon)" stroke-width="8"
-              stroke-dasharray="301.6" stroke-dashoffset="39.2" stroke-linecap="round"/>
+              stroke-dasharray="301.6" stroke-dashoffset="{{ 301.6 * (1 - $persentaseKehadiran / 100) }}" stroke-linecap="round"/>
           </svg>
           <div class="pct-label">
-            <div class="num">87%</div>
+            <div class="num">{{ round($persentaseKehadiran) }}%</div>
             <div class="sub">Hadir</div>
           </div>
         </div>
         <div>
           <div style="font-size:.82rem;color:#555;margin-bottom:.4rem;">Total Kehadiran</div>
-          <div style="font-size:1.5rem;font-weight:700;color:#1a1a2e;line-height:1;">87%</div>
-          <div style="font-size:.75rem;color:#888;margin-top:.2rem;">13 / 16 pertemuan hadir</div>
+          <div style="font-size:1.5rem;font-weight:700;color:#1a1a2e;line-height:1;">{{ round($persentaseKehadiran) }}%</div>
+          <div style="font-size:.75rem;color:#888;margin-top:.2rem;">{{ $totalHadir }} / {{ $totalPertemuan }} pertemuan hadir</div>
           <div class="d-flex gap-2 mt-2 flex-wrap">
-            <span style="font-size:.72rem;background:rgba(25,135,84,0.1);color:#198754;padding:.2rem .6rem;border-radius:20px;">Hadir: 13</span>
-            <span style="font-size:.72rem;background:rgba(253,126,20,0.1);color:#fd7e14;padding:.2rem .6rem;border-radius:20px;">Izin: 1</span>
-            <span style="font-size:.72rem;background:rgba(220,53,69,0.1);color:#dc3545;padding:.2rem .6rem;border-radius:20px;">Alpha: 2</span>
+            <span style="font-size:.72rem;background:rgba(25,135,84,0.1);color:#198754;padding:.2rem .6rem;border-radius:20px;">Hadir: {{ $totalHadir }}</span>
+            <span style="font-size:.72rem;background:rgba(253,126,20,0.1);color:#fd7e14;padding:.2rem .6rem;border-radius:20px;">Izin: {{ $totalIzin }}</span>
+            <span style="font-size:.72rem;background:rgba(220,53,69,0.1);color:#dc3545;padding:.2rem .6rem;border-radius:20px;">Alpha: {{ $totalAlpha }}</span>
           </div>
         </div>
       </div>
@@ -362,15 +364,15 @@
         </div>
         <div class="mb-3">
           <label class="form-label">Email</label>
-          <input type="email" class="form-control" id="editEmail" value="andi@student.ac.id"/>
+          <input type="email" class="form-control" id="editEmail" value="{{ $mahasiswa->email ?? auth()->user()->email }}"/>
         </div>
         <div class="mb-3">
           <label class="form-label">No. HP</label>
-          <input type="text" class="form-control" id="editHp" value="08111111111"/>
+          <input type="number" class="form-control" id="editHp" value="{{ $mahasiswa->no_hp ?? '' }}"/>
         </div>
         <div class="mb-3">
           <label class="form-label">Alamat</label>
-          <textarea class="form-control" id="editAlamat" rows="3">Jl. Sudirman No. 45, Bandung</textarea>
+          <textarea class="form-control" id="editAlamat" rows="3">{{ $mahasiswa->alamat ?? '' }}</textarea>
         </div>
       </div>
       <div class="modal-footer">
@@ -424,26 +426,24 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
   // Render per-MK attendance breakdown
-  const mkData = [
-    { nama: 'Algoritma & Pemrograman', pct: 93, color: '#800020' },
-    { nama: 'Basis Data',               pct: 87, color: '#0d6efd' },
-    { nama: 'RPL',                       pct: 80, color: '#198754' },
-    { nama: 'Jaringan Komputer',         pct: 75, color: '#fd7e14' },
-    { nama: 'Sistem Operasi',            pct: 90, color: '#6f42c1' },
-  ];
+  const mkData = @json($courseBreakdown ?? []);
   const breakdown = document.getElementById('mkBreakdown');
-  mkData.forEach(m => {
-    breakdown.innerHTML += `
-      <div class="mb-3">
-        <div class="d-flex justify-content-between mb-1">
-          <small style="font-size:.82rem;font-weight:600;color:#333;">${m.nama}</small>
-          <small style="color:${m.color};font-weight:700;">${m.pct}%</small>
-        </div>
-        <div class="progress" style="height:7px;border-radius:10px;">
-          <div class="progress-bar" style="width:${m.pct}%;background:${m.color};border-radius:10px;"></div>
-        </div>
-      </div>`;
-  });
+  if (mkData.length > 0) {
+    mkData.forEach(m => {
+      breakdown.innerHTML += `
+        <div class="mb-3">
+          <div class="d-flex justify-content-between mb-1">
+            <small style="font-size:.82rem;font-weight:600;color:#333;">${m.nama}</small>
+            <small style="color:${m.color};font-weight:700;">${m.pct}%</small>
+          </div>
+          <div class="progress" style="height:7px;border-radius:10px;">
+            <div class="progress-bar" style="width:${m.pct}%;background:${m.color};border-radius:10px;"></div>
+          </div>
+        </div>`;
+    });
+  } else {
+    breakdown.innerHTML = '<p style="font-size:.82rem;color:#888;text-align:center;">Belum ada data kehadiran per mata kuliah</p>';
+  }
 
   // Modals
   const modalEditProfil = new bootstrap.Modal(document.getElementById('modalEditProfil'));
@@ -452,7 +452,7 @@
   function openEditModal()     { modalEditProfil.show(); }
   function openPasswordModal() { modalPassword.show(); }
 
- function doLogout() {
+  function doLogout() {
     showToast('Logout...', 'secondary');
 
     setTimeout(() => {

@@ -33,6 +33,7 @@
     .top-header::after {
       content: '';
       position: absolute;
+      z-index: -100;
       width: 160px;
       height: 160px;
       border-radius: 50%;

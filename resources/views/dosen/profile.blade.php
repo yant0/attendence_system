@@ -77,10 +77,12 @@
     .profile-header-card::before {
       content: ''; position: absolute; width: 250px; height: 250px; border-radius: 50%;
       background: rgba(255,255,255,0.05); top: -100px; right: -80px;
+      z-index: -100;
     }
     .profile-header-card::after {
       content: ''; position: absolute; width: 150px; height: 150px; border-radius: 50%;
       background: rgba(255,255,255,0.04); bottom: -60px; left: -40px;
+      z-index: -100;;
     }
     .profile-avatar-lg {
       width: 80px; height: 80px; border-radius: 50%; background: #ffd700;
@@ -226,21 +228,37 @@
     </div>
   </div>
 
+  <!-- FLASH MESSAGES -->
+  @if (session('success'))
+    <div class="alert alert-success alert-dismissible fade show m-3 m-md-4" role="alert">
+      <i class="bi bi-check-circle me-2"></i>
+      {{ session('success') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+  @if (session('error'))
+    <div class="alert alert-danger alert-dismissible fade show m-3 m-md-4" role="alert">
+      <i class="bi bi-exclamation-circle me-2"></i>
+      {{ session('error') }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+  @endif
+
   <div class="p-3 p-md-4">
 
     <!-- PROFILE HEADER CARD -->
     <div class="profile-header-card mb-4">
       <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-3">
-        <div class="profile-avatar-lg">{{ strtoupper(substr(auth()->user()->name, 0, 2)) }}</div>
+        <div class="profile-avatar-lg">{{ strtoupper(substr($user->name, 0, 2)) }}</div>
         <div class="flex-grow-1">
           <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
-            <div class="prof-name">{{ auth()->user()->name }}</div>
+            <div class="prof-name">{{ $user->name }}</div>
             <span class="badge-role">Dosen</span>
           </div>
-          <div class="prof-nip"><i class="bi bi-envelope me-1"></i>{{ auth()->user()->email }}</div>
+          <div class="prof-nip"><i class="bi bi-envelope me-1"></i>{{ $user->email }}</div>
           <div class="prof-dept"><i class="bi bi-building me-1"></i>Teknik Informatika</div>
         </div>
-        <button class="btn-edit-profile" onclick="openEditModal()">
+        <button type="button" class="btn-edit-profile" style="cursor: pointer;" onclick="console.log('Edit button clicked'); openEditModal();">
           <i class="bi bi-pencil-square"></i> Edit Profil
         </button>
       </div>
@@ -259,31 +277,19 @@
           <div class="info-card-body">
             <div class="info-row">
               <span class="info-label">Nama Lengkap</span>
-              <span class="info-value">{{ auth()->user()->name }}</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">NIP</span>
-              <span class="info-value">198501012015</span>
+              <span class="info-value">{{ $user->name }}</span>
             </div>
             <div class="info-row">
               <span class="info-label">Email</span>
-              <span class="info-value">{{ auth()->user()->email }}</span>
+              <span class="info-value">{{ $user->email }}</span>
             </div>
             <div class="info-row">
               <span class="info-label">No. HP</span>
-              <span class="info-value">08123456789</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Tanggal Lahir</span>
-              <span class="info-value">01 Januari 1985</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Jenis Kelamin</span>
-              <span class="info-value">Laki-laki</span>
+              <span class="info-value">{{ $user->phone ?? '-' }}</span>
             </div>
             <div class="info-row">
               <span class="info-label">Alamat</span>
-              <span class="info-value">Jl. Merdeka No. 12, Kota Bandung</span>
+              <span class="info-value">{{ $user->address ?? '-' }}</span>
             </div>
           </div>
         </div>
@@ -306,14 +312,6 @@
               <span class="info-value">Lektor Kepala</span>
             </div>
             <div class="info-row">
-              <span class="info-label">Pendidikan Terakhir</span>
-              <span class="info-value">S2 – Teknik Informatika</span>
-            </div>
-            <div class="info-row">
-              <span class="info-label">Tahun Bergabung</span>
-              <span class="info-value">2015</span>
-            </div>
-            <div class="info-row">
               <span class="info-label">Status</span>
               <span class="info-value">
                 <span class="badge text-bg-success rounded-pill px-3">Aktif</span>
@@ -328,19 +326,19 @@
               <div class="row g-2">
                 <div class="col-4">
                   <div class="stat-mini">
-                    <div class="stat-val">5</div>
+                    <div class="stat-val">{{ $totalMatakuliah }}</div>
                     <div class="stat-lbl">Mata Kuliah Diampu</div>
                   </div>
                 </div>
                 <div class="col-4">
                   <div class="stat-mini">
-                    <div class="stat-val" style="color:#0d6efd;">181</div>
+                    <div class="stat-val" style="color:#0d6efd;">-</div>
                     <div class="stat-lbl">Total Mahasiswa</div>
                   </div>
                 </div>
                 <div class="col-4">
                   <div class="stat-mini">
-                    <div class="stat-val" style="color:#198754;">87%</div>
+                    <div class="stat-val" style="color:#198754;">-</div>
                     <div class="stat-lbl">Rata-rata Kehadiran</div>
                   </div>
                 </div>
@@ -363,7 +361,7 @@
         </div>
       </div>
       <div class="d-flex flex-wrap gap-2">
-        <button class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="openPasswordModal()">
+        <button type="button" class="btn btn-outline-secondary btn-sm rounded-pill px-3" onclick="openPasswordModal()">
           <i class="bi bi-key-fill me-1"></i>Ganti Password
         </button>
       </div>
@@ -380,28 +378,44 @@
         <h5 class="modal-title"><i class="bi bi-pencil-square me-2"></i>Edit Profil</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body p-4">
-        <div class="mb-3">
-          <label class="form-label">Nama Lengkap</label>
-          <input type="text" class="form-control" id="editNama" value="{{ auth()->user()->name }}"/>
+      <form id="formEditProfil" method="POST" action="{{ route('dosen.profile.update') }}">
+        @csrf
+        @method('PUT')
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label">Nama Lengkap</label>
+            <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" value="{{ old('name', $user->name) }}"/>
+            @error('name')
+              <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Email</label>
+            <input type="email" class="form-control @error('email') is-invalid @enderror" name="email" value="{{ old('email', $user->email) }}"/>
+            @error('email')
+              <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+          </div>
+          <div class="mb-3">
+            <label class="form-label">No. HP</label>
+            <input type="number" class="form-control @error('phone') is-invalid @enderror" name="phone" value="{{ old('phone', $user->phone ?? '') }}"/>
+            @error('phone')
+              <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Alamat</label>
+            <textarea class="form-control @error('address') is-invalid @enderror" name="address" rows="3">{{ old('address', $user->address ?? '') }}</textarea>
+            @error('address')
+              <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+          </div>
         </div>
-        <div class="mb-3">
-          <label class="form-label">Email</label>
-          <input type="email" class="form-control" id="editEmail" value="{{ auth()->user()->email }}"/>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-save"><i class="bi bi-save me-1"></i>Simpan</button>
         </div>
-        <div class="mb-3">
-          <label class="form-label">No. HP</label>
-          <input type="text" class="form-control" id="editHp" value="08123456789"/>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Alamat</label>
-          <textarea class="form-control" id="editAlamat" rows="3">Jl. Merdeka No. 12, Kota Bandung</textarea>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-save" onclick="saveProfile()"><i class="bi bi-save me-1"></i>Simpan</button>
-      </div>
+      </form>
     </div>
   </div>
 </div>
@@ -414,24 +428,37 @@
         <h5 class="modal-title"><i class="bi bi-key-fill me-2"></i>Ganti Password</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-      <div class="modal-body p-4">
-        <div class="mb-3">
-          <label class="form-label">Password Lama</label>
-          <input type="password" class="form-control" id="passLama" placeholder="Masukkan password lama"/>
+      <form id="formPassword" method="POST" action="{{ route('dosen.profile.password') }}">
+        @csrf
+        @method('PUT')
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label">Password Lama</label>
+            <input type="password" class="form-control @error('current_password') is-invalid @enderror" name="current_password" placeholder="Masukkan password lama"/>
+            @error('current_password')
+              <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Password Baru</label>
+            <input type="password" class="form-control @error('password') is-invalid @enderror" name="password" placeholder="Masukkan password baru"/>
+            @error('password')
+              <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Konfirmasi Password</label>
+            <input type="password" class="form-control @error('password_confirmation') is-invalid @enderror" name="password_confirmation" placeholder="Ulangi password baru"/>
+            @error('password_confirmation')
+              <div class="invalid-feedback d-block">{{ $message }}</div>
+            @enderror
+          </div>
         </div>
-        <div class="mb-3">
-          <label class="form-label">Password Baru</label>
-          <input type="password" class="form-control" id="passBaru" placeholder="Masukkan password baru"/>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-save"><i class="bi bi-shield-check me-1"></i>Simpan</button>
         </div>
-        <div class="mb-3">
-          <label class="form-label">Konfirmasi Password</label>
-          <input type="password" class="form-control" id="passKonfirmasi" placeholder="Ulangi password baru"/>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-light" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-save" onclick="savePassword()"><i class="bi bi-shield-check me-1"></i>Simpan</button>
-      </div>
+      </form>
     </div>
   </div>
 </div>
@@ -453,30 +480,6 @@
 
   function openEditModal()     { modalEditProfil.show(); }
   function openPasswordModal() { modalPassword.show(); }
-
-  function saveProfile() {
-    modalEditProfil.hide();
-    showToast('Profil berhasil diperbarui!', 'success');
-  }
-
-  function savePassword() {
-    const baru = document.getElementById('passBaru').value;
-    const konfirmasi = document.getElementById('passKonfirmasi').value;
-    if (!baru || !konfirmasi) { showToast('Semua field wajib diisi!', 'danger'); return; }
-    if (baru !== konfirmasi)  { showToast('Konfirmasi password tidak cocok!', 'danger'); return; }
-    modalPassword.hide();
-    document.getElementById('passLama').value = '';
-    document.getElementById('passBaru').value = '';
-    document.getElementById('passKonfirmasi').value = '';
-    showToast('Password berhasil diubah!', 'success');
-  }
-
-  function showToast(msg, type) {
-    const toast = document.getElementById('mainToast');
-    toast.className = `toast align-items-center border-0 text-bg-${type}`;
-    document.getElementById('toastMsg').textContent = msg;
-    new bootstrap.Toast(toast, { delay: 3000 }).show();
-  }
 
   function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('show');

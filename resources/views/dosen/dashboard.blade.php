@@ -324,7 +324,7 @@
           <div class="stat-card card-maroon">
             <div class="icon-box"><i class="bi bi-people-fill"></i></div>
             <div>
-              <div class="val">128</div>
+              <div class="val">{{ $totalStudents }}</div>
               <div class="lbl">Total Mahasiswa</div>
               <div class="trend text-success"><i class="bi bi-arrow-up-short"></i>4 baru</div>
             </div>
@@ -334,7 +334,7 @@
           <div class="stat-card card-blue">
             <div class="icon-box"><i class="bi bi-book-fill"></i></div>
             <div>
-              <div class="val">5</div>
+              <div class="val">{{ $totalMatakuliah }}</div>
               <div class="lbl">Mata Kuliah Diampu</div>
               <div class="trend text-muted">Semester ini</div>
             </div>
@@ -344,7 +344,7 @@
           <div class="stat-card card-green">
             <div class="icon-box"><i class="bi bi-check-circle-fill"></i></div>
             <div>
-              <div class="val">87%</div>
+              <div class="val">{{ $totalAttendance }}</div>
               <div class="lbl">Rata‑rata Kehadiran</div>
               <div class="trend text-success"><i class="bi bi-arrow-up-short"></i>+2% bulan ini</div>
             </div>
@@ -369,7 +369,20 @@
         <div class="col-md-5">
           <div class="section-card h-100">
             <h6><i class="bi bi-calendar3"></i> Jadwal Hari Ini</h6>
-            <div id="scheduleList"></div>
+            <div id="scheduleList">
+              @forelse ($schedules as $schedule)
+                <div class="schedule-item">
+                  <div class="schedule-time">{{ $schedule['time'] }}</div>
+                  <div class="schedule-dot" style="background:{{ $schedule['color'] }};"></div>
+                  <div class="schedule-info">
+                    <div class="mk">{{ $schedule['matkul'] }}</div>
+                    <div class="rm"><i class="bi bi-geo-alt"></i> {{ $schedule['ruang'] }}</div>
+                  </div>
+                </div>
+              @empty
+                <p class="text-muted text-center py-3">Tidak ada jadwal untuk hari ini</p>
+              @endforelse
+            </div>
           </div>
         </div>
 
@@ -377,7 +390,21 @@
         <div class="col-md-7">
           <div class="section-card h-100">
             <h6><i class="bi bi-bar-chart-fill"></i> Kehadiran per Mata Kuliah</h6>
-            <div id="progressList"></div>
+            <div id="progressList">
+              @forelse ($mkProgress as $progress)
+                <div class="mb-3">
+                  <div class="d-flex justify-content-between mb-1">
+                    <small class="fw-600" style="color:#333;">{{ $progress['mk'] }}</small>
+                    <small style="color:{{ $progress['color'] }};font-weight:700;">{{ $progress['pct'] }}%</small>
+                  </div>
+                  <div class="progress" style="height:7px;border-radius:10px;">
+                    <div class="progress-bar" style="width:{{ $progress['pct'] }}%;background:{{ $progress['color'] }};border-radius:10px;"></div>
+                  </div>
+                </div>
+              @empty
+                <p class="text-muted text-center py-3">Tidak ada data kehadiran</p>
+              @endforelse
+            </div>
           </div>
         </div>
       </div>
@@ -399,7 +426,38 @@
                 <th>Status</th>
               </tr>
             </thead>
-            <tbody id="recentTable"></tbody>
+            <tbody id="recentTable">
+              @forelse ($recentPresensis as $index => $presence)
+                <tr>
+                  <td class="text-muted">{{ $index + 1 }}</td>
+                  <td>
+                    <div class="fw-600">{{ $presence['nama'] }}</div>
+                    <small class="text-muted">{{ $presence['nim'] }}</small>
+                  </td>
+                  <td>{{ $presence['mk'] }}</td>
+                  <td><i class="bi bi-clock me-1 text-muted"></i>{{ $presence['waktu'] }}</td>
+                  <td>
+                    @switch($presence['status'])
+                      @case('hadir')
+                        <span class="badge badge-hadir px-3 py-1 rounded-pill">Hadir</span>
+                        @break
+                      @case('izin')
+                        <span class="badge badge-izin px-3 py-1 rounded-pill">Izin</span>
+                        @break
+                      @case('alpha')
+                        <span class="badge badge-alpha px-3 py-1 rounded-pill">Alpha</span>
+                        @break
+                      @default
+                        <span class="badge badge-secondary px-3 py-1 rounded-pill">{{ ucfirst($presence['status']) }}</span>
+                    @endswitch
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="5" class="text-muted text-center py-3">Tidak ada data presensi</td>
+                </tr>
+              @endforelse
+            </tbody>
           </table>
         </div>
       </div>
@@ -414,77 +472,6 @@
     document.getElementById('dateNow').textContent =
       d.toLocaleDateString('id-ID', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
 
-    // Schedules
-    const schedules = [
-      { time:'07:30', matkul:'Algoritma & Pemrograman', ruang:'Lab K.301', color:'#800020' },
-      { time:'09:30', matkul:'Basis Data', ruang:'R. B.202', color:'#0d6efd' },
-      { time:'13:00', matkul:'Rekayasa Perangkat Lunak', ruang:'R. C.101', color:'#198754' },
-      { time:'15:00', matkul:'Jaringan Komputer', ruang:'Lab N.202', color:'#fd7e14' },
-    ];
-    const sl = document.getElementById('scheduleList');
-    schedules.forEach(s => {
-      sl.innerHTML += `
-        <div class="schedule-item">
-          <div class="schedule-time">${s.time}</div>
-          <div class="schedule-dot" style="background:${s.color};"></div>
-          <div class="schedule-info">
-            <div class="mk">${s.matkul}</div>
-            <div class="rm"><i class="bi bi-geo-alt"></i> ${s.ruang}</div>
-          </div>
-        </div>`;
-    });
-
-    // Progress bars
-    const mkProgress = [
-      { mk:'Algoritma & Pemrograman', pct:92, color:'var(--maroon)' },
-      { mk:'Basis Data',               pct:85, color:'#0d6efd' },
-      { mk:'Rekayasa Perangkat Lunak', pct:78, color:'#198754' },
-      { mk:'Jaringan Komputer',        pct:88, color:'#fd7e14' },
-      { mk:'Sistem Operasi',           pct:72, color:'#6f42c1' },
-    ];
-    const pl = document.getElementById('progressList');
-    mkProgress.forEach(m => {
-      pl.innerHTML += `
-        <div class="mb-3">
-          <div class="d-flex justify-content-between mb-1">
-            <small class="fw-600" style="color:#333;">${m.mk}</small>
-            <small style="color:${m.color};font-weight:700;">${m.pct}%</small>
-          </div>
-          <div class="progress" style="height:7px;border-radius:10px;">
-            <div class="progress-bar" style="width:${m.pct}%;background:${m.color};border-radius:10px;"></div>
-          </div>
-        </div>`;
-    });
-
-    // Recent table
-    const recent = [
-      { no:1, nama:'Andi Pratama',    nim:'M001', mk:'Algoritma & Pemrograman', waktu:'07:35', status:'hadir'  },
-      { no:2, nama:'Budi Santoso',    nim:'M002', mk:'Algoritma & Pemrograman', waktu:'07:37', status:'hadir'  },
-      { no:3, nama:'Citra Dewi',      nim:'M003', mk:'Basis Data',              waktu:'09:32', status:'hadir'  },
-      { no:4, nama:'Dian Rahma',      nim:'M004', mk:'Basis Data',              waktu:'-',     status:'izin'   },
-      { no:5, nama:'Eko Firmansyah',  nim:'M005', mk:'Sistem Operasi',          waktu:'-',     status:'alpha'  },
-      { no:6, nama:'Fina Sari',       nim:'M006', mk:'Rekayasa PL',             waktu:'13:05', status:'hadir'  },
-    ];
-    const tbl = document.getElementById('recentTable');
-    const statusBadge = {
-      hadir: '<span class="badge badge-hadir px-3 py-1 rounded-pill">Hadir</span>',
-      izin:  '<span class="badge badge-izin  px-3 py-1 rounded-pill">Izin</span>',
-      alpha: '<span class="badge badge-alpha px-3 py-1 rounded-pill">Alpha</span>',
-    };
-    recent.forEach(r => {
-      tbl.innerHTML += `
-        <tr>
-          <td class="text-muted">${r.no}</td>
-          <td>
-            <div class="fw-600">${r.nama}</div>
-            <small class="text-muted">${r.nim}</small>
-          </td>
-          <td>${r.mk}</td>
-          <td><i class="bi bi-clock me-1 text-muted"></i>${r.waktu}</td>
-          <td>${statusBadge[r.status]}</td>
-        </tr>`;
-    });
-
     // Sidebar toggle
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('show');
@@ -498,5 +485,3 @@
   <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-none">
     @csrf
 </form>
-  </body>
-  </html>

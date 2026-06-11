@@ -19,6 +19,7 @@
     .top-header::before {
       content: ''; position: absolute; width: 200px; height: 200px; border-radius: 50%;
       background: rgba(255,255,255,0.06); top: -80px; right: -60px;
+      z-index: -100;
     }
     .top-header .avatar {
       width: 50px; height: 50px; border-radius: 50%;
@@ -143,7 +144,7 @@
       <div>
         <div class="greeting">Selamat Datang,</div>
         <div class="name">{{ auth()->user()->name }}</div>
-        <div class="nim">NIM: M001 · Teknik Informatika</div>
+        <div class="nim">NIM: {{ $mahasiswaProfile->nim ?? 'M001' }} · {{ $mahasiswaProfile->jurusan ?? 'Teknik Informatika' }}</div>
       </div>
     </div>
     <button class="notif-btn" id="dateBtn">
@@ -157,17 +158,17 @@
       <svg width="110" height="110">
         <circle cx="55" cy="55" r="48" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="8"/>
         <circle cx="55" cy="55" r="48" fill="none" stroke="#ffd700" stroke-width="8"
-          stroke-dasharray="301.6" stroke-dashoffset="38" stroke-linecap="round"/>
+          stroke-dasharray="301.6" stroke-dashoffset="{{ 301.6 - (301.6 * $attendancePercentage / 100) }}" stroke-linecap="round"/>
       </svg>
       <div class="pct-label">
-        <div class="num" style="color:#fff;">87%</div>
+        <div class="num" style="color:#fff;">{{ $attendancePercentage }}%</div>
         <div class="sub" style="color:rgba(255,255,255,0.7);">Hadir</div>
       </div>
     </div>
     <div>
       <div style="color:rgba(255,255,255,0.8);font-size:.8rem;">Kehadiran Semester Ini</div>
-      <div style="color:#fff;font-weight:700;font-size:1.6rem;line-height:1;">87%</div>
-      <div style="color:rgba(255,255,255,0.7);font-size:.75rem;">26 / 30 pertemuan hadir</div>
+      <div style="color:#fff;font-weight:700;font-size:1.6rem;line-height:1;">{{ $attendancePercentage }}%</div>
+      <div style="color:rgba(255,255,255,0.7);font-size:.75rem;">{{ $hadirCount }} / {{ $hadirCount + $izinCount + $alphaCount }} pertemuan hadir</div>
     </div>
   </div>
 </div>
@@ -175,23 +176,23 @@
 <!-- SUMMARY STRIP -->
 <div class="summary-strip">
   <div class="sum-pill">
-    <div class="val" style="color:var(--maroon);">5</div>
+    <div class="val" style="color:var(--maroon);">{{ $totalMatakuliah }}</div>
     <div class="lbl">Mata Kuliah</div>
   </div>
   <div class="sum-pill">
-    <div class="val" style="color:#198754;">26</div>
+    <div class="val" style="color:#198754;">{{ $hadirCount }}</div>
     <div class="lbl">Hadir</div>
   </div>
   <div class="sum-pill">
-    <div class="val" style="color:#fd7e14;">2</div>
+    <div class="val" style="color:#fd7e14;">{{ $izinCount }}</div>
     <div class="lbl">Izin</div>
   </div>
   <div class="sum-pill">
-    <div class="val" style="color:#dc3545;">2</div>
+    <div class="val" style="color:#dc3545;">{{ $alphaCount }}</div>
     <div class="lbl">Alpha</div>
   </div>
   <div class="sum-pill">
-    <div class="val" style="color:#0d6efd;">14</div>
+    <div class="val" style="color:#0d6efd;">{{ $totalSks }}</div>
     <div class="lbl">SKS Total</div>
   </div>
 </div>
@@ -235,7 +236,21 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div style="font-size:.9rem;font-weight:700;color:#1a1a2e;"><i class="bi bi-bar-chart-fill me-1" style="color:var(--maroon);"></i> Kehadiran per Mata Kuliah</div>
     </div>
-    <div id="mkProgressList"></div>
+    <div id="mkProgressList">
+      @forelse($mkProgress as $mk)
+        <div class="mb-3">
+          <div class="d-flex justify-content-between mb-1">
+            <small class="fw-600" style="color:#333;font-size:.83rem;">{{ $mk['nama'] }}</small>
+            <small style="color:{{ $mk['color'] }};font-weight:700;">{{ $mk['hadir'] }}/{{ $mk['total'] }} ({{ $mk['pct'] }}%)</small>
+          </div>
+          <div class="progress" style="height:7px;border-radius:10px;">
+            <div class="progress-bar" style="width:{{ $mk['pct'] }}%;background:{{ $mk['color'] }};border-radius:10px;"></div>
+          </div>
+        </div>
+      @empty
+        <div style="text-align:center;color:#888;font-size:.9rem;padding:1rem;">Belum ada data kehadiran.</div>
+      @endforelse
+    </div>
   </div>
 
   <!-- Pengajuan Izin Terbaru -->
@@ -243,7 +258,25 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div style="font-size:.9rem;font-weight:700;color:#1a1a2e;"><i class="bi bi-file-earmark-check me-1" style="color:var(--maroon);"></i> Status Pengajuan Izin</div>
     </div>
-    <div id="izinList"></div>
+    <div id="izinList">
+      @forelse($izinData as $iz)
+        @php
+          $bg = $iz['status'] === 'Disetujui' ? 'rgba(25,135,84,0.06)' : 'rgba(253,126,20,0.06)';
+        @endphp
+        <div class="izin-card" style="background:{{ $bg }};border:1px solid {{ $iz['color'] }}30;">
+          <div class="izin-icon" style="background:{{ $iz['color'] }}18;color:{{ $iz['color'] }};">
+            <i class="bi bi-file-earmark-text"></i>
+          </div>
+          <div class="flex-grow-1">
+            <div class="izin-mk">{{ $iz['mk'] }}</div>
+            <div class="izin-date">{{ $iz['jenis'] }} · {{ $iz['tgl'] }}</div>
+          </div>
+          <span class="badge rounded-pill" style="background:{{ $iz['color'] }}18;color:{{ $iz['color'] }};">{{ $iz['status'] }}</span>
+        </div>
+      @empty
+        <div style="text-align:center;color:#888;font-size:.9rem;padding:1rem;">Belum ada pengajuan izin.</div>
+      @endforelse
+    </div>
   </div>
 
   <!-- Riwayat Terbaru -->
@@ -251,7 +284,27 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
       <div style="font-size:.9rem;font-weight:700;color:#1a1a2e;"><i class="bi bi-clock-history me-1" style="color:var(--maroon);"></i> Riwayat Presensi Terbaru</div>
     </div>
-    <div id="riwayatList"></div>
+    <div id="riwayatList">
+      @forelse($riwayat as $r)
+        @php
+          $statusBadges = [
+            'hadir' => '<span class="badge badge-hadir px-2 rounded-pill">Hadir</span>',
+            'izin'  => '<span class="badge badge-izin px-2 rounded-pill">Izin</span>',
+            'alpha' => '<span class="badge badge-alpha px-2 rounded-pill">Alpha</span>',
+          ];
+        @endphp
+        <div class="rec-item">
+          <div class="rec-dot" style="background:{{ $r['color'] }};"></div>
+          <div class="flex-grow-1">
+            <div class="rec-mk">{{ $r['mk'] }}</div>
+            <div class="rec-date"><i class="bi bi-calendar3 me-1"></i>{{ $r['tgl'] }}  <i class="bi bi-clock ms-2 me-1"></i>{{ $r['waktu'] }}</div>
+          </div>
+          {!! $statusBadges[$r['status']] !!}
+        </div>
+      @empty
+        <div style="text-align:center;color:#888;font-size:.9rem;padding:1rem;">Belum ada riwayat presensi.</div>
+      @endforelse
+    </div>
   </div>
 
 </div><!-- end content -->
@@ -325,77 +378,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script>
-  // Kehadiran per MK
-  const mkList = [
-    { nama:'Algoritma & Pemrograman', hadir:14, total:16, color:'#800020' },
-    { nama:'Basis Data',               hadir:13, total:16, color:'#0d6efd' },
-    { nama:'Rekayasa PL',              hadir:12, total:16, color:'#198754' },
-    { nama:'Jaringan Komputer',        hadir:15, total:16, color:'#fd7e14' },
-    { nama:'Sistem Operasi',           hadir:10, total:16, color:'#6f42c1' },
-  ];
-  const pl = document.getElementById('mkProgressList');
-  mkList.forEach(m => {
-    const pct = Math.round((m.hadir / m.total) * 100);
-    pl.innerHTML += `
-      <div class="mb-3">
-        <div class="d-flex justify-content-between mb-1">
-          <small class="fw-600" style="color:#333;font-size:.83rem;">${m.nama}</small>
-          <small style="color:${m.color};font-weight:700;">${m.hadir}/${m.total} (${pct}%)</small>
-        </div>
-        <div class="progress" style="height:7px;border-radius:10px;">
-          <div class="progress-bar" style="width:${pct}%;background:${m.color};border-radius:10px;"></div>
-        </div>
-      </div>`;
-  });
-
-  // Izin List
-  const izinData = [
-    { mk:'Algoritma & Pemrograman', tgl:'2026-04-10', jenis:'Sakit', status:'Disetujui', color:'#198754' },
-    { mk:'Basis Data',               tgl:'2026-04-08', jenis:'Izin Keluarga', status:'Disetujui', color:'#198754' },
-    { mk:'Rekayasa PL',              tgl:'2026-04-14', jenis:'Kegiatan Kampus', status:'Menunggu', color:'#fd7e14' },
-  ];
-  const il = document.getElementById('izinList');
-  izinData.forEach(iz => {
-    const bg = iz.status === 'Disetujui' ? 'rgba(25,135,84,0.06)' : 'rgba(253,126,20,0.06)';
-    il.innerHTML += `
-      <div class="izin-card" style="background:${bg};border:1px solid ${iz.color}30;">
-        <div class="izin-icon" style="background:${iz.color}18;color:${iz.color};">
-          <i class="bi bi-file-earmark-text"></i>
-        </div>
-        <div class="flex-grow-1">
-          <div class="izin-mk">${iz.mk}</div>
-          <div class="izin-date">${iz.jenis} · ${iz.tgl}</div>
-        </div>
-        <span class="badge rounded-pill" style="background:${iz.color}18;color:${iz.color};">${iz.status}</span>
-      </div>`;
-  });
-
-  // Riwayat
-  const riwayat = [
-    { mk:'Algoritma & Pemrograman', tgl:'15 Apr 2026', waktu:'07:35', status:'hadir',  color:'#198754' },
-    { mk:'Basis Data',               tgl:'15 Apr 2026', waktu:'09:40', status:'hadir',  color:'#198754' },
-    { mk:'Rekayasa PL',              tgl:'14 Apr 2026', waktu:'-',     status:'izin',   color:'#fd7e14' },
-    { mk:'Jaringan Komputer',        tgl:'14 Apr 2026', waktu:'15:05', status:'hadir',  color:'#198754' },
-    { mk:'Sistem Operasi',           tgl:'12 Apr 2026', waktu:'-',     status:'alpha',  color:'#dc3545' },
-  ];
-  const statusBadge = {
-    hadir: '<span class="badge badge-hadir px-2 rounded-pill">Hadir</span>',
-    izin:  '<span class="badge badge-izin  px-2 rounded-pill">Izin</span>',
-    alpha: '<span class="badge badge-alpha px-2 rounded-pill">Alpha</span>',
-  };
-  const rl = document.getElementById('riwayatList');
-  riwayat.forEach(r => {
-    rl.innerHTML += `
-      <div class="rec-item">
-        <div class="rec-dot" style="background:${r.color};"></div>
-        <div class="flex-grow-1">
-          <div class="rec-mk">${r.mk}</div>
-          <div class="rec-date"><i class="bi bi-calendar3 me-1"></i>${r.tgl}  <i class="bi bi-clock ms-2 me-1"></i>${r.waktu}</div>
-        </div>
-        ${statusBadge[r.status]}
-      </div>`;
-  });
-
   // Modal
   document.getElementById('izinTgl').value = new Date().toISOString().split('T')[0];
   const modalIzin = new bootstrap.Modal(document.getElementById('modalIzin'));
