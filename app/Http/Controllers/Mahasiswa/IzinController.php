@@ -84,4 +84,62 @@ class IzinController extends Controller
         return redirect()->route('mahasiswa.izin.index')
             ->with('success', 'Pengajuan izin berhasil dibatalkan.');
     }
+    public function apiIndex()
+    {
+        $izins = Izin::with('matakuliah')
+            ->where('mahasiswa_id', Auth::id())
+            ->latest()
+            ->get();
+
+        $matakuliahs = Matakuliah::where('status', 'Aktif')
+            ->orderBy('nama_matakuliah')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'izins' => $izins->map(function ($i) {
+                return [
+                    'id' => $i->id,
+                    'matakuliah' => $i->matakuliah->nama_matakuliah ?? '-',
+                    'jenis' => $i->jenis,
+                    'tanggal' => $i->tanggal,
+                    'keterangan' => $i->keterangan,
+                    'status' => $i->status,
+                    'catatan' => $i->catatan_dosen,
+                    'diajukan' => $i->created_at?->format('Y-m-d'),
+                ];
+            }),
+            'matakuliah' => $matakuliahs->map(function ($mk) {
+                return [
+                    'kode' => $mk->kode_matakuliah,
+                    'nama' => $mk->nama_matakuliah,
+                    'sks' => $mk->sks,
+                ];
+            }),
+        ]);
+    }
+    public function apiStore(Request $request)
+    {
+        $request->validate([
+            'jenis' => 'required',
+            'kode_matakuliah' => 'required',
+            'tanggal' => 'required|date',
+            'keterangan' => 'required',
+        ]);
+
+        $izin = Izin::create([
+            'mahasiswa_id' => Auth::id(),
+            'kode_matakuliah' => $request->kode_matakuliah,
+            'jenis' => $request->jenis,
+            'tanggal' => $request->tanggal,
+            'keterangan' => $request->keterangan,
+            'status' => 'Menunggu',
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Pengajuan izin berhasil dikirim',
+            'data' => $izin,
+        ]);
+    }
 }

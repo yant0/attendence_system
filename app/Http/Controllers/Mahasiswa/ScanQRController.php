@@ -33,15 +33,9 @@ class ScanQRController extends Controller
     }
     public function process(Request $request)
     {
-        \Log::info('=== SCAN MASUK ===');
-        \Log::info($request->all());
+    
         $token = $request->token;
-        \Log::info([
-            'token' => $token,
-            'auth' => Auth::id(),
-            'latitude' => $request->latitude,
-            'longitude' => $request->longitude,
-        ]);
+       
         if (empty($token) && $request->filled('qr_text')) {
             $parts = explode('/', $request->qr_text);
             $token = end($parts);
@@ -94,11 +88,6 @@ class ScanQRController extends Controller
 
             ]);
         }
-        \Log::info([
-            'auth_id' => Auth::id(),
-            'session_id' => $session->id,
-            'cookies' => request()->cookies->all(),
-        ]);
         Presensi::create([
 
             'mahasiswa_id' => Auth::id(),

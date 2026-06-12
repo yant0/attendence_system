@@ -1,12 +1,11 @@
 <?php
 
-use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Mahasiswa\ProfileController as MahasiswaProfileController;
 use App\Http\Controllers\Dosen\QRController;
 use App\Http\Controllers\Dosen\IzinController as DosenIzinController;
 use App\Http\Controllers\Dosen\DashboardController as DosenDashboardController;
 use App\Http\Controllers\Dosen\ProfileController as DosenProfileController;
-use App\Http\Controllers\Mahasiswa\DashboardController as MahasiswaDashboardController;
-use App\Http\Controllers\Mahasiswa\ProfileController as MahasiswaProfileController;
+use App\Http\Controllers\Mahasiswa\DashboardController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\MahasiswaController;
 use App\Http\Controllers\MatakuliahController;
@@ -46,18 +45,40 @@ Route::middleware(['auth', 'role:dosen'])->prefix('dosen')->group(function () {
 });
 
 Route::middleware(['auth', 'role:mahasiswa'])->prefix('mahasiswa')->group(function () {
-    Route::get('/dashboard', [MahasiswaDashboardController::class, 'index'])->name('mahasiswa.dashboard');
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('mahasiswa.dashboard');
     Route::get('/list_matakuliah', [MatakuliahController::class, 'mahasiswaIndex'])->name('mahasiswa.matakuliah.index');
     Route::get('/profile', [MahasiswaProfileController::class, 'show'])->name('mahasiswa.profile');
     Route::get('/scan_qr', function () {
         return view('mahasiswa.scan_qr');
     });
+    Route::get(
+        '/dashboard/api',
+        [DashboardController::class, 'apiDashboard']
+    );
     Route::get('/scan/{token}', [ScanQRController::class, 'scan']);
     Route::post('/scan/process', [ScanQRController::class, 'process']);
 
     Route::get('/izin', [IzinController::class, 'index'])->name('mahasiswa.izin.index');
     Route::post('/izin', [IzinController::class, 'store'])->name('mahasiswa.izin.store');
     Route::delete('/izin/{izin}', [IzinController::class, 'destroy'])->name('mahasiswa.izin.destroy');
+    Route::get(
+        '/izin/api',
+        [IzinController::class, 'apiIndex']
+    );
+
+    Route::post(
+        '/izin/api',
+        [IzinController::class, 'apiStore']
+    );
+
+    Route::delete(
+        '/izin/api/{izin}',
+        [IzinController::class, 'apiDestroy']
+    );
+    Route::get(
+        '/list_matakuliah/api',
+        [MatakuliahController::class, 'apiMahasiswaIndex']
+    );
 });
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

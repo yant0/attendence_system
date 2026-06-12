@@ -28,9 +28,9 @@ class DashboardController extends Controller
         $izinCount = $userPresensis->where('status', 'izin')->count();
         $absenCount = $userPresensis->where('status', 'absen')->count();
         $totalPresensis = $hadirCount + $izinCount + $absenCount;
-        
-        $attendancePercentage = $totalPresensis > 0 
-            ? round(($hadirCount / $totalPresensis) * 100) 
+
+        $attendancePercentage = $totalPresensis > 0
+            ? round(($hadirCount / $totalPresensis) * 100)
             : 0;
 
         // Get attendance per matakuliah (through QRSession)
@@ -40,9 +40,9 @@ class DashboardController extends Controller
             $mkPresensis = Presensi::whereHas('qrSession', function ($query) use ($mk) {
                 $query->where('matakuliah_id', $mk->id);
             })
-            ->where('mahasiswa_id', $user->id)
-            ->get();
-            
+                ->where('mahasiswa_id', $user->id)
+                ->get();
+
             $mkHadir = $mkPresensis->where('status', 'hadir')->count();
             $mkTotal = $mkPresensis->count();
             $mkPercentage = $mkTotal > 0 ? round(($mkHadir / $mkTotal) * 100) : 0;
@@ -83,10 +83,10 @@ class DashboardController extends Controller
             ->map(function ($p) {
                 $tanggal = $p->qrSession?->tanggal;
                 $tanggalFormatted = $tanggal ? Carbon::parse($tanggal)->format('d M Y') : '-';
-                
+
                 $waktuScan = $p->waktu_scan;
                 $waktuFormatted = $waktuScan ? (is_string($waktuScan) ? substr($waktuScan, 11, 5) : $waktuScan->format('H:i')) : '-';
-                
+
                 return [
                     'mk' => $p->qrSession?->matakuliah?->nama_matakuliah ?? '-',
                     'tgl' => $tanggalFormatted,
@@ -108,6 +108,113 @@ class DashboardController extends Controller
             'izinData' => $izinData,
             'riwayat' => $riwayat,
             'mahasiswaProfile' => $mahasiswaProfile,
+        ]);
+    }
+    public function apiDashboard()
+    {
+        $user = Auth::user();
+        $mahasiswaProfile = $user->mahasiswaProfile;
+
+        $matakuliahs = Matakuliah::where('status', 'Aktif')
+            ->orderBy('nama_matakuliah')
+            ->get();
+
+        $userPresensis = Presensi::where('mahasiswa_id', $user->id)->get();
+
+        $hadirCount = $userPresensis->where('status', 'hadir')->count();
+        $izinCount = $userPresensis->where('status', 'izin')->count();
+        $absenCount = $userPresensis->where('status', 'absen')->count();
+
+        $totalPresensis = $hadirCount + $izinCount + $absenCount;
+
+        $attendancePercentage = $totalPresensis > 0
+            ? round(($hadirCount / $totalPresensis) * 100)
+            : 0;
+
+        $mkProgress = [];
+
+        foreach ($matakuliahs as $mk) {
+            $mkPresensis = Presensi::whereHas('qrSession', function ($query) use ($mk) {
+                $query->where('matakuliah_id', $mk->id);
+            })
+                ->where('mahasiswa_id', $user->id)
+                ->get();
+
+            $mkHadir = $mkPresensis->where('status', 'hadir')->count();
+            $mkTotal = $mkPresensis->count();
+            $mkPercentage = $mkTotal > 0
+                ? round(($mkHadir / $mkTotal) * 100)
+                : 0;
+
+            if ($mkTotal > 0) {
+                $mkProgress[] = [
+                    'nama' => $mk->nama_matakuliah,
+                    'hadir' => $mkHadir,
+                    'total' => $mkTotal,
+                    'pct' => $mkPercentage,
+                    'color' => $mkPercentage >= 80
+                        ? '#198754'
+                        : ($mkPercentage >= 60 ? '#fd7e14' : '#dc3545'),
+                ];
+            }
+        }
+
+        $izinData = Izin::where('mahasiswa_id', $user->id)
+            ->with('matakuliah')
+            ->latest()
+            ->take(3)
+            ->get()
+            ->map(function ($i) {
+                return [
+                    'mk' => $i->matakuliah?->nama_matakuliah ?? '-',
+                    'tgl' => $i->tanggal
+                        ? Carbon::parse($i->tanggal)->format('d M Y')
+                        : '-',
+                    'jenis' => $i->jenis,
+                    'status' => $i->status,
+                    'color' => $i->status === 'Disetujui'
+                        ? '#198754'
+                        : ($i->status === 'Ditolak' ? '#dc3545' : '#fd7e14'),
+                ];
+            });
+
+        $riwayat = Presensi::where('mahasiswa_id', $user->id)
+            ->with('qrSession.matakuliah')
+            ->orderByDesc('waktu_scan')
+            ->take(5)
+            ->get()
+            ->map(function ($p) {
+
+                $tanggal = $p->qrSession?->tanggal;
+
+                return [
+                    'mk' => $p->qrSession?->matakuliah?->nama_matakuliah ?? '-',
+                    'tgl' => $tanggal
+                        ? Carbon::parse($tanggal)->format('d M Y')
+                        : '-',
+                    'waktu' => $p->waktu_scan,
+                    'status' => $p->status,
+                    'color' => $p->status === 'hadir'
+                        ? '#198754'
+                        : ($p->status === 'izin' ? '#fd7e14' : '#dc3545'),
+                ];
+            });
+
+        return response()->json([
+            'attendancePercentage' => $attendancePercentage,
+            'hadirCount' => $hadirCount,
+            'izinCount' => $izinCount,
+            'absenCount' => $absenCount,
+            'totalPresensis' => $totalPresensis,
+            'totalMatakuliah' => $matakuliahs->count(),
+            'totalSks' => $matakuliahs->sum('sks'),
+            'mkProgress' => $mkProgress,
+            'izinData' => $izinData,
+            'riwayat' => $riwayat,
+            'mahasiswa' => [
+                'nama' => $user->name,
+                'nim' => $mahasiswaProfile?->nim,
+            ],
         ]);
     }
 }
