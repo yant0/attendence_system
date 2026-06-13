@@ -250,7 +250,6 @@
     <div class="nav-section-title">Lainnya</div>
     <nav class="sidebar-nav">
       <a href="/dosen/profile"><i class="bi bi-person-circle"></i> Profil</a>
-      <a href="#"><i class="bi bi-gear-fill"></i> Pengaturan</a>
     </nav>
 
   <div class="sidebar-footer">
@@ -299,14 +298,6 @@
           </nav>
         </div>
       </div>
-      <div class="d-flex align-items-center gap-2">
-        <span class="badge rounded-pill text-bg-danger d-none d-sm-inline">
-          <i class="bi bi-circle-fill me-1" style="font-size:.5rem;"></i> Live
-        </span>
-        <button class="btn btn-sm" style="background:var(--gray-bg);border:none;" title="Notifikasi">
-          <i class="bi bi-bell" style="font-size:1.1rem;color:#555;"></i>
-        </button>
-      </div>
     </div>
 
     <!-- CONTENT -->
@@ -314,7 +305,7 @@
 
       <!-- Greeting -->
       <div class="mb-4">
-        <h4 class="fw-700 mb-0" style="color:#1a1a2e;">Selamat Datang, {{ explode(' ', auth()->user()->name)[0] }}👋</h4>
+        <h4 class="fw-700 mb-0" style="color:#1a1a2e;">Selamat Datang, {{ auth()->user()->name }}👋</h4>
         <small class="text-muted" id="dateNow"></small>
       </div>
 
@@ -326,7 +317,6 @@
             <div>
               <div class="val">{{ $totalStudents }}</div>
               <div class="lbl">Total Mahasiswa</div>
-              <div class="trend text-success"><i class="bi bi-arrow-up-short"></i>4 baru</div>
             </div>
           </div>
         </div>
@@ -336,7 +326,6 @@
             <div>
               <div class="val">{{ $totalMatakuliah }}</div>
               <div class="lbl">Mata Kuliah Diampu</div>
-              <div class="trend text-muted">Semester ini</div>
             </div>
           </div>
         </div>
@@ -346,7 +335,6 @@
             <div>
               <div class="val">{{ $totalAttendance }}</div>
               <div class="lbl">Rata‑rata Kehadiran</div>
-              <div class="trend text-success"><i class="bi bi-arrow-up-short"></i>+2% bulan ini</div>
             </div>
           </div>
         </div>
@@ -354,9 +342,8 @@
           <div class="stat-card card-orange">
             <div class="icon-box"><i class="bi bi-hourglass-split"></i></div>
             <div>
-              <div class="val">3</div>
+              <div class="val">{{ $qrCounts }}</div>
               <div class="lbl">QR Aktif Hari Ini</div>
-              <div class="trend text-muted">Sesi berlangsung</div>
             </div>
           </div>
         </div>

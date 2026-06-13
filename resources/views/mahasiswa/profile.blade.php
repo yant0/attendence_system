@@ -284,7 +284,7 @@
         <div>
           <div style="font-size:.82rem;color:#555;margin-bottom:.4rem;">Total Kehadiran</div>
           <div style="font-size:1.5rem;font-weight:700;color:#1a1a2e;line-height:1;">{{ round($persentaseKehadiran) }}%</div>
-          <div style="font-size:.75rem;color:#888;margin-top:.2rem;">{{ $totalHadir }} / {{ $totalPertemuan }} pertemuan hadir</div>
+          <div style="font-size:.75rem;color:#888;margin-top:.2rem;">{{ $totalHadir }} / {{ $totalPertemuan > $totalitas ? $totalPertemuan : $totalitas }} pertemuan hadir</div>
           <div class="d-flex gap-2 mt-2 flex-wrap">
             <span style="font-size:.72rem;background:rgba(25,135,84,0.1);color:#198754;padding:.2rem .6rem;border-radius:20px;">Hadir: {{ $totalHadir }}</span>
             <span style="font-size:.72rem;background:rgba(253,126,20,0.1);color:#fd7e14;padding:.2rem .6rem;border-radius:20px;">Izin: {{ $totalIzin }}</span>

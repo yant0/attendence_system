@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Dosen;
 
-use App\Http\Controllers\Controller;
-use App\Models\Matakuliah;
+use Carbon\Carbon;
+use App\Models\Izin;
 use App\Models\Presensi;
+use App\Models\Mahasiswa;
+use App\Models\Matakuliah;
+use App\Http\Controllers\Controller;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;
 
 class DashboardController extends Controller
 {
@@ -58,40 +60,70 @@ class DashboardController extends Controller
             ];
         });
 
-        // Get recent attendance records
-        $recentPresensis = Presensi::whereHas('qrSession', function ($query) use ($matakuliahs) {
-            $query->whereIn('matakuliah_id', $matakuliahs->pluck('id'));
-        })
+        // 1️⃣  Attendance (Presensi)
+        $presensi = Presensi::whereHas('qrSession', function ($q) use ($matakuliahs) {
+                $q->whereIn('matakuliah_id', $matakuliahs->pluck('id'));
+            })
             ->with(['mahasiswa.mahasiswaProfile', 'qrSession.matakuliah'])
-            ->latest()
+            ->orderByDesc('created_at')
             ->take(6)
             ->get()
-            ->map(function ($p, $index) {
-                $tanggal = $p->qrSession?->tanggal;
-                $tanggalFormatted = $tanggal ? Carbon::parse($tanggal)->format('Y-m-d') : '-';
-                
-                $waktuScan = $p->waktu_scan;
-                $waktuFormatted = $waktuScan ? (is_string($waktuScan) ? substr($waktuScan, 11, 5) : $waktuScan->format('H:i')) : '-';
-                
+            ->map(function ($p) {
                 return [
-                    'nama' => $p->mahasiswa?->mahasiswaProfile?->nama ?? $p->mahasiswa?->name ?? '-',
-                    'nim' => $p->mahasiswa?->mahasiswaProfile?->nim ?? '-',
-                    'mk' => $p->qrSession?->matakuliah?->nama_matakuliah ?? '-',
-                    'tgl' => $tanggalFormatted,
-                    'waktu' => $waktuFormatted,
-                    'status' => $p->status,
-                    'color' => $p->status === 'hadir' ? '#198754' : ($p->status === 'izin' ? '#fd7e14' : '#dc3545'),
+                    'nama'   => $p->mahasiswa?->mahasiswaProfile?->nama ?? $p->mahasiswa?->name ?? '-',
+                    'nim'    => $p->mahasiswa?->mahasiswaProfile?->nim ?? '-',
+                    'mk'     => $p->qrSession?->matakuliah?->nama_matakuliah ?? '-',
+                    'tgl'    => Carbon::parse($p->qrSession?->tanggal)->format('Y-m-d'),
+                    'waktu'  => $p->waktu_scan ? (is_string($p->waktu_scan) ? substr($p->waktu_scan,11,5) : $p->waktu_scan->format('H:i')) : '-',
+                    'status' => $p->status,               // 'hadir' | 'alpha'
+                ];
+            });
+        // 2️⃣  Permission requests (Izin)
+        $izin = Izin::with(['mahasiswa.mahasiswaProfile', 'matakuliah'])
+            ->whereIn('kode_matakuliah', $matakuliahs->pluck('kode_matakuliah'))
+            ->orderByDesc('created_at')
+            ->take(6)
+            ->get()
+            ->map(function ($i) {
+                return [
+                    'nama'   => $i->mahasiswa?->mahasiswaProfile?->nama ?? $i->mahasiswa?->name ?? '-',
+                    'nim'    => $i->mahasiswa?->mahasiswaProfile?->nim ?? '-',
+                    'mk'     => $i->matakuliah?->nama_matakuliah ?? '-',
+                    'tgl'    => Carbon::parse($i->tanggal)->format('Y-m-d'),
+                    'waktu'  => $i->created_at->format('H:i'),
+                    'status' => 'izin',
                 ];
             });
 
+        // 3️⃣  Merge, sort by date, keep the newest 6 rows
+        $recentPresensis = $presensi->merge($izin)
+            ->sortByDesc('waktu')
+            ->take(6)
+            ->values();   // reset numeric keys
+
+        $totalStudents = Mahasiswa::count();
+        $today = Carbon::today();
+
+        $qrCounts = Matakuliah::where('dosen_id', Auth::id())
+            ->where('status', 'Aktif')
+            ->orderBy('nama_matakuliah')
+            ->get()
+            ->map(function ($mk) use ($today) {
+                return $mk->qrSessions()
+                    ->whereDate('tanggal', $today->toDateString())
+                    ->count();
+            })
+            ->sum();
+
         return view('dosen.dashboard', [
-            'matakuliahs' => $matakuliahs,
-            'totalMatakuliah' => $matakuliahs->count(),
-            'totalStudents' => $totalStudents,
-            'totalAttendance' => $totalAttendance,
+            'qrCounts' => $qrCounts,
             'schedules' => $schedules,
             'mkProgress' => $mkProgress,
+            'matakuliahs' => $matakuliahs,
+            'totalStudents' => $totalStudents,
+            'totalAttendance' => $totalAttendance,
             'recentPresensis' => $recentPresensis,
+            'totalMatakuliah' => $matakuliahs->count(),
         ]);
     }
 

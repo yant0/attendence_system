@@ -20,11 +20,12 @@ class ProfileController extends Controller
 
         // Calculate attendance statistics
         $totalPertemuan = 16; // This should ideally come from the semester/course data
-        $totalHadir = $presensis->where('status', 'Hadir')->count();
-        $totalIzin = $presensis->where('status', 'Izin')->count();
-        $totalAlpha = $presensis->where('status', 'Alpha')->count();
+        $totalHadir = $presensis->where('status', 'hadir')->count();
+        $totalIzin = $presensis->where('status', 'izin')->count();
+        $totalAlpha = $presensis->where('status', 'alpha')->count();
+        $totalitas = $totalHadir + $totalIzin + $totalAlpha;
         $persentaseKehadiran = $totalPertemuan > 0
-            ? round(($totalHadir / $totalPertemuan) * 100, 2)
+            ? round(($totalHadir / $totalitas) * 100, 2)
             : 0;
 
         // Group presences by course (if available in your data structure)
@@ -38,7 +39,8 @@ class ProfileController extends Controller
             'totalAlpha',
             'totalPertemuan',
             'persentaseKehadiran',
-            'courseBreakdown'
+            'courseBreakdown',
+            'totalitas'
         ));
     }
 }

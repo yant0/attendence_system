@@ -442,7 +442,6 @@
     <div class="nav-section-title">Lainnya</div>
     <nav class="sidebar-nav">
       <a href="/dosen/profile"><i class="bi bi-person-circle"></i> Profil</a>
-      <a href="#"><i class="bi bi-gear-fill"></i> Pengaturan</a>
     </nav>
     <div class="sidebar-footer">
 

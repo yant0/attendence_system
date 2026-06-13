@@ -98,7 +98,23 @@
                 <div class="fw-semibold">Pertemuan {{ $session->pertemuan }}</div>
                 <div class="text-muted">{{ $session->tanggal }} {{ $session->waktu_mulai }}</div>
               </div>
-              <span class="badge {{ $presensi ? 'text-bg-success' : 'text-bg-secondary' }}">
+              <span
+                  @php
+                      $status = $presensi->status ?? '';   // <-- fallback to an empty string
+                  @endphp
+                  @switch($status)
+                      @case('hadir')
+                          class="badge text-bg-success"
+                      @case('izin')
+                          class="badge text-bg-warning"
+                      @case('sakit')
+                          class="badge text-bg-danger"
+                      @case('alpha')
+                          class="badge text-bg-danger"
+                      @default
+                          class="badge text-bg-secondary"
+                  @endswitch
+                  ">
                 {{ $presensi ? ucfirst($presensi->status) : 'Belum scan' }}
               </span>
             </div>
